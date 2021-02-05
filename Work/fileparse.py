@@ -5,10 +5,20 @@
 import csv
 
 
-def parse_csv(filename, select=None, types=None, has_headers=None, delimiter=","):
+def parse_csv(
+    filename,
+    select=None,
+    types=None,
+    has_headers=None,
+    delimiter=",",
+    silence_errors=False,
+):
     """
     Parse a CSV file into a list of records with type conversion
     """
+    if select and not has_headers:
+        raise RuntimeError("select requires column headers")
+
     with open(filename) as f:
         rows = csv.reader(f, delimiter=delimiter)
 
@@ -24,7 +34,7 @@ def parse_csv(filename, select=None, types=None, has_headers=None, delimiter=","
             indices = []
 
         records = []
-        for row in rows:
+        for rowno, row in enumerate(rows, 1):
             if not row:  # Skip rows with no data
                 continue
 
@@ -32,9 +42,15 @@ def parse_csv(filename, select=None, types=None, has_headers=None, delimiter=","
             if indices:
                 row = [row[index] for index in indices]
 
-            # Applirs type conversion to the row
+            # Applies type conversion to the row
             if types:
-                row = [func(val) for func, val in zip(types, row)]
+                try:
+                    row = [func(val) for func, val in zip(types, row)]
+                except ValueError as e:
+                    if not silence_errors:
+                        print(f"Row {rowno}: Couldn't convert {row}")
+                        print(f"Row {rowno}: Reason {e}")
+                    continue
 
             # Make dictionary or tuple
             if headers:
