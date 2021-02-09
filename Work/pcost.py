@@ -1,10 +1,8 @@
 # pcost.py
 #
 # Exercise 1.27
-#
-# pylint: disable=unused-variable
+
 import sys
-import csv
 import report
 
 
@@ -12,29 +10,17 @@ def portfolio_cost(filename):
     """
     This function takes in a portfolio file and returns the total cost of the portfolio as a float.
     """
-    total_cost = 0.0
 
-    with open(filename, "rt") as f:
-        rows = csv.reader(f)
-        headers = next(rows)
-
-        for rowno, row in enumerate(rows, start=1):
-            record = dict(zip(headers, row))
-            try:
-                numshares = int(record["shares"])
-                purchaseprice = float(record["price"])
-                total_cost += numshares * purchaseprice
-                # This catches errors where int() or float() could not be converted.
-            except ValueError:
-                print(f"Row {rowno}: Couldn't covert: {row}")
-
-    return total_cost
+    portfolio_cost = report.read_portfolio(filename)
+    return sum([s["shares"] * s["price"] for s in portfolio_cost])
 
 
-if len(sys.argv) == 2:
-    filename = sys.argv[1]
-else:
-    filename = input("Enter a filename:")
+def main(args):
+    if len(args) != 2:
+        raise SystemExit("Usage: %s portfile" % args[0])
+    filename = args[1]
+    print("Total cost:", portfolio_cost(filename))
 
-cost = portfolio_cost(filename)
-print("Total cost", cost)
+
+if __name__ == "__main__":
+    main(sys.argv)
