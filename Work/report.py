@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # report.py
 #
 # Exercise 2.4
@@ -5,46 +6,27 @@
 # pylint: disable=unused-variable
 
 import csv
+import sys
+from fileparse import parse_csv
 
 
 def read_portfolio(filename):
     """
-    Opens a given portfolio file and reads it into a list of tuples
+    Read a stock portfolio into a list of dictoaries with keys
+    name, shares, price.
     """
-    portfolio = []
-
-    with open(filename, "rt") as f:
-        rows = csv.reader(f)
-        headers = next(rows)
-
-        for row in rows:
-            record = dict(zip(headers, row))
-            holding = {
-                "name": record["name"],
-                "shares": int(record["shares"]),
-                "price": float(record["price"]),
-            }
-            portfolio.append(holding)
-
-    return portfolio
+    with open(filename) as lines:
+        return parse_csv(
+            lines, select=["name", "shares", "price"], types=[str, int, float]
+        )
 
 
 def read_prices(filename):
     """
-    Reads in prices and outputs a dictionary of stock:price
+    Reads in prices and outputs a dictionary mapping stock to price.
     """
-
-    prices = {}
-
-    with open(filename, "rt") as f:
-        rows = csv.reader(f)
-        for row in rows:
-            try:
-                prices[row[0]] = float(row[1])
-            except:
-                pass
-
-    return prices
+    with open(filename) as lines:
+        return dict(parse_csv(lines, types=[str, float], has_headers=False))
 
 
 def make_report(portfolio, prices):
@@ -77,7 +59,22 @@ def portfolio_report(portfolio_filename, prices_filename):
     """
     Reads portfolio and prices files and creates and ouputs final report
     """
+    # Read in data files
     portfolio = read_portfolio(portfolio_filename)
     prices = read_prices(prices_filename)
+
+    # Create report of data
     report = make_report(portfolio, prices)
+
+    # Print it out
     print_report(report)
+
+
+def main(args):
+    if len(args) != 3:
+        raise SystemExit("Usage: %s portfile pricefile" % args[0])
+    portfolio_report(args[1], args[2])
+
+
+if __name__ == "__main__":
+    main(sys.argv)
