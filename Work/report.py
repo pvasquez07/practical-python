@@ -5,20 +5,23 @@
 #
 # pylint: disable=unused-variable
 
-import csv
 import sys
+import tableformat
+from stock import Stock
 from fileparse import parse_csv
 
 
 def read_portfolio(filename):
     """
-    Read a stock portfolio into a list of dictoaries with keys
+    Read a stock portfolio into a list of dictonaries with keys
     name, shares, price.
     """
     with open(filename) as lines:
-        return parse_csv(
+        portdicts = parse_csv(
             lines, select=["name", "shares", "price"], types=[str, int, float]
         )
+        portfolio = [Stock(d["name"], d["shares"], d["price"]) for d in portdicts]
+        return portfolio
 
 
 def read_prices(filename):
@@ -35,29 +38,29 @@ def make_report(portfolio, prices):
     """
     rows = []
     for stock in portfolio:
-        current_price = prices[stock["name"]]
-        change = current_price - stock["price"]
-        summary = (stock["name"], stock["shares"], current_price, change)
+        current_price = prices[stock.name]
+        change = current_price - stock.price
+        summary = (stock.name, stock.shares, current_price, change)
         rows.append(summary)
     return rows
 
 
-def print_report(report):
+def print_report(report, formatter):
     """
-    Takes in a report and outputs data in a clean table
+    Takes in a report and outputs data in a formatted table.
     """
-    headers = ("Name", "Shares", "Price", "Change")
-    print("%10s %10s %10s %10s" % headers)
-    print(("-" * 10 + " ") * len(headers))
+    formatter.headings(["Name", "Shares", "Price", "Change"])
     for name, shares, price, change in report:
-        print(f"{name:>10s} {shares:>10d} {price:>10.2f} {change:>10.2f}")
+        rowdata = [name, str(shares), f"{price:0.2f}", f"{change:0.2f}"]
+        formatter.row(rowdata)
 
     return report
 
 
-def portfolio_report(portfolio_filename, prices_filename):
+def portfolio_report(portfolio_filename, prices_filename, fmt="txt"):
     """
-    Reads portfolio and prices files and creates and ouputs final report
+    Reads portfolio and prices files and creates and ouputs stock report
+    fmt: option output report as txt, csv, html
     """
     # Read in data files
     portfolio = read_portfolio(portfolio_filename)
@@ -67,13 +70,14 @@ def portfolio_report(portfolio_filename, prices_filename):
     report = make_report(portfolio, prices)
 
     # Print it out
-    print_report(report)
+    formatter = tableformat.create_formatter(fmt)
+    print_report(report, formatter)
 
 
 def main(args):
-    if len(args) != 3:
-        raise SystemExit("Usage: %s portfile pricefile" % args[0])
-    portfolio_report(args[1], args[2])
+    if len(args) != 4:
+        raise SystemExit("Usage: %s portfile pricefile fmt" % args[0])
+    portfolio_report(args[1], args[2], args[3])
 
 
 if __name__ == "__main__":
