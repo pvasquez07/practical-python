@@ -5,6 +5,9 @@
 
 import csv
 import sys
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def parse_csv(
@@ -57,8 +60,8 @@ def parse_csv(
                 row = [func(val) for func, val in zip(types, row)]
             except ValueError as e:
                 if not silence_errors:
-                    print(f"Row {rowno}: Couldn't convert {row}")
-                    print(f"Row {rowno}: Reason {e}")
+                    log.warning("Row %d: Couldn't convert %s", rowno, row)
+                    log.debug("Row %d: Reason %s", rowno, e)
                 continue
 
         # Make dictionary or tuple

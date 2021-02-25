@@ -3,7 +3,7 @@
 # Exercise 1.27
 
 import sys
-import report
+from . import report
 
 
 def portfolio_cost(filename):
@@ -11,8 +11,8 @@ def portfolio_cost(filename):
     This function takes in a portfolio file and returns the total cost of the portfolio as a float.
     """
 
-    portfolio_cost = report.read_portfolio(filename)
-    return sum([s.cost() for s in portfolio_cost])
+    portfolio = report.read_portfolio(filename)
+    return portfolio.total_cost
 
 
 def main(args):

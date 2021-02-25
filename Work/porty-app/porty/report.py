@@ -6,22 +6,19 @@
 # pylint: disable=unused-variable
 
 import sys
-import tableformat
-from stock import Stock
-from fileparse import parse_csv
+from . import tableformat
+from .stock import Stock
+from .fileparse import parse_csv
+from .portfolio import Portfolio
 
 
-def read_portfolio(filename):
+def read_portfolio(filename, **opts):
     """
     Read a stock portfolio into a list of dictonaries with keys
     name, shares, price.
     """
     with open(filename) as lines:
-        portdicts = parse_csv(
-            lines, select=["name", "shares", "price"], types=[str, int, float]
-        )
-        portfolio = [Stock(d["name"], d["shares"], d["price"]) for d in portdicts]
-        return portfolio
+        return Portfolio.from_csv(lines, **opts)
 
 
 def read_prices(filename):
